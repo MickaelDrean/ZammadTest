@@ -1,50 +1,48 @@
-version: '3.8'
-
 services:
-  zammad-railsserver:
+  zammad:
     image: zammad/zammad:latest
-    restart: always
     ports:
       - "8080:3000"
-    depends_on:
-      - zammad-elasticsearch
-      - zammad-database
     environment:
       RAILS_ENV: production
       DATABASE_ADAPTER: postgresql
-      DATABASE_HOST: zammad-database
+      DATABASE_HOST: zammad-postgres
       DATABASE_NAME: zammad
       DATABASE_USER: zammad
       DATABASE_PASSWORD: zammad
       ELASTICSEARCH_HOSTS: http://zammad-elasticsearch:9200
-
-  zammad-websocket:
-    image: zammad/zammad-websocket:latest
-    restart: always
+      REDIS_URL: redis://redis:6379
     depends_on:
-      - zammad-railsserver
-    environment:
-      RAILS_ENV: production
+      - zammad-postgres
+      - zammad-elasticsearch
+      - redis
+   # volumes:
+   #   - zammad-data:/opt/zammad
+    #command: /bin/bash -c "rails db:migrate && rails assets:precompile && rails server -b 0.0.0.0 -p 3000"
+    command: tail -f /dev/null
 
-  zammad-database:
+  zammad-postgres:
     image: postgres:13
-    restart: always
     environment:
       POSTGRES_USER: zammad
       POSTGRES_PASSWORD: zammad
       POSTGRES_DB: zammad
     volumes:
-      - zammad-db-data:/var/lib/postgresql/data
+      - zammad-postgres-data:/var/lib/postgresql/data
 
   zammad-elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:7.17.0
-    restart: always
     environment:
       discovery.type: single-node
       ES_JAVA_OPTS: "-Xms512m -Xmx512m"
     volumes:
-      - zammad-es-data:/usr/share/elasticsearch/data
+      - zammad-elasticsearch-data:/usr/share/elasticsearch/data
+
+  redis:
+    image: redis:alpine
+    restart: unless-stopped
 
 volumes:
-  zammad-db-data:
-  zammad-es-data:
+  zammad-postgres-data:
+  zammad-elasticsearch-data:
+  zammad-data:
