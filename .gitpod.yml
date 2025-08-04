@@ -1,8 +1,14 @@
+image:
+  file: .gitpod.Dockerfile
+
 tasks:
-  - name: Start Zammad
-    init: docker-compose up -d
-    command: sleep infinity
+  - name: Setup Zammad
+    init: ./init.sh
+    command: |
+      echo "Zammad prêt sur http://localhost:3000"
 
 ports:
-  - port: 8080
+  - port: 3000
     onOpen: open-preview
+  - port: 6379
+    onOpen: ignore

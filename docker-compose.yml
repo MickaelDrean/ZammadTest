@@ -1,6 +1,8 @@
 services:
   zammad:
-    image: zammad/zammad:latest
+    build:
+      context: .
+      dockerfile: Dockerfile.zammad
     ports:
       - "8080:3000"
     environment:
@@ -16,10 +18,13 @@ services:
       - zammad-postgres
       - zammad-elasticsearch
       - redis
-   # volumes:
-   #   - zammad-data:/opt/zammad
-    #command: /bin/bash -c "rails db:migrate && rails assets:precompile && rails server -b 0.0.0.0 -p 3000"
-    command: tail -f /dev/null
+    command: >
+      /bin/bash -c "
+      pnpm install &&
+      rails db:migrate &&
+      rails assets:precompile &&
+      rails server -b 0.0.0.0 -p 3000
+      "
 
   zammad-postgres:
     image: postgres:13
